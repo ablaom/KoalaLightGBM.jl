@@ -120,7 +120,7 @@ inverse_transform(model::LGBMRegressor, scheme_y, yt::AbstractVector) =
 function setup(rgs::LGBMRegressor,
                X::Matrix{T},
                y::Vector{T},
-               metadata, parallel, verbosity) where T <: Real
+               features, parallel, verbosity) where T <: Real
     return X, y
 end
 
