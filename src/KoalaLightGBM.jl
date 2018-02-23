@@ -1,11 +1,11 @@
-__precompile__()
+#__precompile__()
 module KoalaLightGBM
 
 export LGBMRegressor
 
 import Koala: Regressor
 import Koala: params, splitrows
-import KoalaTransforms: UnivariateStandardizationScheme
+import KoalaTransforms
 import DataFrames: AbstractDataFrame
 try
     import LightGBM
@@ -20,7 +20,7 @@ end
 
 # to be extended (but not explicitly rexported):
 import Koala: setup, fit, predict
-import Koala: get_scheme_X, get_scheme_y, transform, inverse_transform
+import Koala: get_transformer_X, get_transformer_y, transform, inverse_transform
 
 # development only:
 # import ADBUtilities: @dbg, @colon
@@ -103,19 +103,8 @@ LGBMRegressor(;num_iterations=10, learning_rate=.1, num_leaves=127, max_depth=-1
                                                      time_out, machine_list_file,
                                                      validation_fraction)
 
-get_scheme_X(model::LGBMRegressor, X, test_rows, features) = features
-
-transform(model::LGBMRegressor, features , X::AbstractDataFrame) =
-    Array{Float64}(X[features])
-
-get_scheme_y(model::LGBMRegressor, y, test_rows) =
-    UnivariateStandardizationScheme(y[test_rows])
-                          
-transform(model::LGBMRegressor, scheme_y , y::Vector{T} where T <: Real) =
-    transform(scheme_y, y)
-
-inverse_transform(model::LGBMRegressor, scheme_y, yt::AbstractVector) =
-    inverse_transform(scheme_y, yt)
+get_transformer_X(model::LGBMRegressor) = KoalaTransforms.DataFrameToArrayTransformer()
+get_transformer_y(model::LGBMRegressor) = KoalaTransforms.UnivariateStandardizer()
 
 function setup(rgs::LGBMRegressor,
                X::Matrix{T},

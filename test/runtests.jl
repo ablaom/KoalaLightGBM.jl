@@ -7,9 +7,9 @@ const train, test = splitrows(1:length(y), 0.8);
 rgs = LGBMRegressor(validation_fraction = 0.2,
                     num_iterations=100,
                     num_leaves=2, min_data_in_leaf=12)
-mach = SupervisedMachine(rgs, X, y, train)
+mach = Machine(rgs, X, y, train)
 fit!(mach, train)
-machrgs.validation_fraction = 0.0
+rgs.validation_fraction = 0.0
 fit!(mach, train)
 score = err(mach, test)
 println("error = $score")
