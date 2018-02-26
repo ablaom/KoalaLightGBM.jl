@@ -20,7 +20,7 @@ end
 
 # to be extended (but not explicitly rexported):
 import Koala: setup, fit, predict
-import Koala: get_transformer_X, get_transformer_y, transform, inverse_transform
+import Koala: default_transformer_X, default_transformer_y, transform, inverse_transform
 
 # development only:
 # import ADBUtilities: @dbg, @colon
@@ -103,8 +103,10 @@ LGBMRegressor(;num_iterations=10, learning_rate=.1, num_leaves=127, max_depth=-1
                                                      time_out, machine_list_file,
                                                      validation_fraction)
 
-get_transformer_X(model::LGBMRegressor) = KoalaTransforms.DataFrameToArrayTransformer()
-get_transformer_y(model::LGBMRegressor) = KoalaTransforms.UnivariateStandardizer()
+default_transformer_X(model::LGBMRegressor) =
+    KoalaTransforms.DataFrameToArrayTransformer()
+default_transformer_y(model::LGBMRegressor) =
+    KoalaTransforms.UnivariateStandardizer()
 
 function setup(rgs::LGBMRegressor,
                X::Matrix{T},
