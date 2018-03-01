@@ -3,7 +3,7 @@ using Base.Test
 
 using Koala
 const X, y = load_boston();
-const train, test = splitrows(1:length(y), 0.8);
+const train, test = split(1:length(y), 0.8);
 rgs = LGBMRegressor(validation_fraction = 0.2,
                     num_iterations=100,
                     num_leaves=2, min_data_in_leaf=12)

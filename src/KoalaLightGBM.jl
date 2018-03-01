@@ -1,4 +1,4 @@
-#__precompile__()
+__precompile__()
 module KoalaLightGBM
 
 export LGBMRegressor
@@ -106,7 +106,7 @@ LGBMRegressor(;num_iterations=10, learning_rate=.1, num_leaves=127, max_depth=-1
 default_transformer_X(model::LGBMRegressor) =
     KoalaTransforms.DataFrameToArrayTransformer()
 default_transformer_y(model::LGBMRegressor) =
-    KoalaTransforms.UnivariateStandardizer()
+    KoalaTransforms.RegressionTargetTransformer()
 
 function setup(rgs::LGBMRegressor,
                X::Matrix{T},
