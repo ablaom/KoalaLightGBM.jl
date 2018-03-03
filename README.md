@@ -40,6 +40,5 @@ In the following example we start with the hyperparameter `validation_fraction=0
 
     julia> err(mach, test)
     3.6908332199941105
-    ````
-
+````
 
