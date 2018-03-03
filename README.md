@@ -21,7 +21,7 @@ In the following example we start with the hyperparameter `validation_fraction=0
     num_leaves=2, min_data_in_leaf=12)
     LGBMRegressor@...312
 
-    julia> mach = SupervisedMachine(rgs, X, y, train)
+    julia> mach = Machine(rgs, X, y, train)
     SupervisedMachine{LGBMRegressor,}@...392
 
     julia> fit!(mach, train)
