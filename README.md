@@ -15,7 +15,7 @@ In the following example we start with the hyperparameter `validation_fraction=0
     julia> using KoalaLightGBM
     julia> using Koala
     julia> const X, y = load_boston();
-    julia> const train, test = splitrows(1:length(y), 0.8); # 80:20 split
+    julia> const train, test = split(1:length(y), 0.8); # 80:20 split
     julia> rgs = LGBMRegressor(validation_fraction = 0.2,
     num_iterations=100,
     num_leaves=2, min_data_in_leaf=12)
