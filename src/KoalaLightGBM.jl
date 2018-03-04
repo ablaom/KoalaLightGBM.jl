@@ -4,7 +4,7 @@ module KoalaLightGBM
 export LGBMRegressor
 
 import Koala: Regressor
-import Koala: params, splitrows
+import Koala: params
 import KoalaTransforms
 import DataFrames: AbstractDataFrame
 try
@@ -124,7 +124,7 @@ function fit(rgs::LGBMRegressor, cache, add, parallel, verbosity)
     # than zero:
     train_fraction = 1 - rgs.validation_fraction
     if rgs.validation_fraction != 0.0
-        train, valid = splitrows(1:length(y), train_fraction)
+        train, valid = split(eachindex(y), train_fraction)
         Xvalid = X[valid,:]
         yvalid = y[valid]
         X = X[train,:]
