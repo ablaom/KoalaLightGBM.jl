@@ -6,7 +6,7 @@ const X, y = load_boston();
 const train, test = split(1:length(y), 0.8);
 rgs = LGBMRegressor(validation_fraction = 0.2,
                     num_iterations=100,
-                    num_leaves=2, min_data_in_leaf=12)
+                    num_leaves=2, min_data_in_leaf=12, categorical_feature=[9,10])
 mach = Machine(rgs, X, y, train)
 fit!(mach, train)
 rgs.validation_fraction = 0.0

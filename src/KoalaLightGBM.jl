@@ -1,12 +1,13 @@
-__precompile__()
+#__precompile__()
 module KoalaLightGBM
 
 export LGBMRegressor
 
-import Koala: Regressor
+import Koala: Regressor, BaseType, Transformer
 import Koala: params
-import KoalaTransforms
-import DataFrames: AbstractDataFrame
+import KoalaTransforms: MakeCategoricalsIntTransformer, DataFrameToArrayTransformer
+import KoalaTransforms: ToIntTransformer, ToIntScheme, RegressionTargetTransformer
+import DataFrames: AbstractDataFrame, eltypes
 try
     import LightGBM
 catch exception
@@ -64,7 +65,7 @@ mutable struct LGBMRegressor <: Regressor{LightGBM.LGBMRegression}
     num_machines::Int 
     local_listen_port::Int 
     time_out::Int 
-    machine_list_file::String 
+    machine_list_file::String
     validation_fraction::Float64  # if zero then no validation errors
                                   # computed or reported
 
@@ -82,42 +83,111 @@ LGBMRegressor(;num_iterations=10, learning_rate=.1, num_leaves=127, max_depth=-1
               save_binary=false, is_unbalance=false, metric=["l2"],
               metric_freq=1, is_training_metric=false,
               ndcg_at=Int[], num_machines=1, local_listen_port=12400, time_out=120,
-              machine_list_file="",
+              machine_list_file="", 
               validation_fraction=0.0) = LGBMRegressor(num_iterations, learning_rate,
-                                                     num_leaves, max_depth,
-                                                     tree_learner, num_threads,
-                                                     histogram_pool_size,
-                                                     min_data_in_leaf,
-                                                     min_sum_hessian_in_leaf,
-                                                     feature_fraction,
-                                                     feature_fraction_seed,
-                                                     bagging_fraction, bagging_freq,
-                                                     bagging_seed,
-                                                     early_stopping_round,
-                                                     max_bin, data_random_seed,
-                                                     init_score, is_sparse,
-                                                     save_binary, is_unbalance,
-                                                     metric, metric_freq,
-                                                     is_training_metric, ndcg_at,
-                                                     num_machines, local_listen_port,
-                                                     time_out, machine_list_file,
-                                                     validation_fraction)
+                                                       num_leaves, max_depth,
+                                                       tree_learner, num_threads,
+                                                       histogram_pool_size,
+                                                       min_data_in_leaf,
+                                                       min_sum_hessian_in_leaf,
+                                                       feature_fraction,
+                                                       feature_fraction_seed,
+                                                       bagging_fraction, bagging_freq,
+                                                       bagging_seed,
+                                                       early_stopping_round,
+                                                       max_bin, data_random_seed,
+                                                       init_score, is_sparse,
+                                                       save_binary, is_unbalance,
+                                                       metric, metric_freq,
+                                                       is_training_metric, ndcg_at,
+                                                       num_machines, local_listen_port,
+                                                       time_out, machine_list_file,
+                                                       validation_fraction)
+
+
+## CUSTOM TRANSFORMER FOR INPUTS
+
+# Note: We need any features designated as categorical to be
+# represented as integers, and then the entire dataframe converted to
+# a float array. By default (`categorical_features` empty) all
+# non-real columns are considerered categorical.
+
+
+mutable struct LGBMTransformer_X <: Transformer
+    sorted::Bool
+    categorical_features::Vector{Symbol}
+end
+
+LGBMTransformer_X(; sorted=false, categorical_features=Symbol[]) =
+    LGBMTransformer_X(sorted, categorical_features)
+
+struct LGBMScheme_X <: BaseType
+    features::Vector{Symbol}
+    categorical_features::Vector{Symbol}
+    schemes::Vector{ToIntScheme}
+    to_int_transformer::ToIntTransformer
+end
+
+function fit(transformer::LGBMTransformer_X, X::AbstractDataFrame, parallel, verbosity)
+
+    to_int_transformer = ToIntTransformer(sorted=transformer.sorted,
+                                          initial_label=0)
+    categorical_features = transformer.categorical_features
+    features = names(X)
+    if isempty(categorical_features)
+        types = eltypes(X)
+        for j in eachindex(types)
+            if !(types[j] <: Real)
+                push!(categorical_features, features[j])
+            end
+        end
+    end
+
+    schemes = ToIntScheme[]
+    for feature in categorical_features 
+        push!(schemes, fit(to_int_transformer, X[feature], parallel, verbosity))
+    end
+
+    return LGBMScheme_X(features, categorical_features, schemes, to_int_transformer)
+
+end
+
+function transform(transformer::LGBMTransformer_X, scheme_X, X::AbstractDataFrame)
+    issubset(Set(scheme_X.features), Set(names(X))) ||
+        error("DataFrame feature incompatibility encountered.")
+    Xt = copy(X[scheme_X.features])
+    
+    for j in eachindex(scheme_X.categorical_features)
+        ftr = scheme_X.categorical_features[j]
+        Xt[ftr] = transform(scheme_X.to_int_transformer, scheme_X.schemes[j], Xt[ftr])
+    end
+    return convert(Array{Float64}, Xt)
+end
 
 default_transformer_X(model::LGBMRegressor) =
-    KoalaTransforms.DataFrameToArrayTransformer()
+    LGBMTransformer_X()
 default_transformer_y(model::LGBMRegressor) =
-    KoalaTransforms.RegressionTargetTransformer()
+    RegressionTargetTransformer()
+
+
+## SETUP AND FIT METHODS
 
 function setup(rgs::LGBMRegressor,
                X::Matrix{T},
                y::Vector{T},
-               features, parallel, verbosity) where T <: Real
-    return X, y
+               scheme_X, parallel, verbosity) where T <: Real
+    features = scheme_X.features
+    categorical_features = scheme_X.categorical_features
+    categorical_feature_indices = map(categorical_features) do cat
+        findfirst(features) do ftr ftr == cat end
+    end
+    
+    return X, y, categorical_feature_indices
 end
 
 function fit(rgs::LGBMRegressor, cache, add, parallel, verbosity)
 
-    X, y, = cache
+    X, y, categorical_feature_indices = cache
 
     # Microsoft's LightGBM has option for reporting running validation
     # scores; so we split the data if `validation_fraction` is bigger
@@ -145,6 +215,10 @@ function fit(rgs::LGBMRegressor, cache, add, parallel, verbosity)
     if !parallel
         parameters[:num_threads] = 1
     end
+
+    parameters[:categorical_feature] = categorical_feature_indices
+
+    showall(parameters)
 
     predictor = LightGBM.LGBMRegression(;parameters...)
 
