@@ -218,8 +218,6 @@ function fit(rgs::LGBMRegressor, cache, add, parallel, verbosity)
 
     parameters[:categorical_feature] = categorical_feature_indices
 
-    showall(parameters)
-
     predictor = LightGBM.LGBMRegression(;parameters...)
 
     valid_pairs = Tuple{Matrix{Float64},Vector{Float64}}[]

@@ -34,4 +34,5 @@ fit!(mach, train)
 score = err(mach, test)
 println("error = $score")
 @test score > 3 && score < 4
+fit!(mach)
 
