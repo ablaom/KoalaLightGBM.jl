@@ -7,7 +7,7 @@ learning environment. It is built entirely on top of Allard van Mossel's
 julia wrap [LightGBM.jl](https://github.com/Allardvm/LightGBM.jl)
 of the Microsoft software.
 
-## Usage example:
+### Usage example:
 
 In the following example we start with the hyperparameter
 `validation_fraction=0.2` to obtain a running validation score for the
@@ -46,13 +46,14 @@ julia> err(mach, test)
 3.6908332199941105
 ````
 
-## Categorical features
+### Categorical features
 
 By default, KoalaLightGBM treats any feature of element type `T<:Real`
 as an ordinal feature, and this includes columns of `Bool` and `Int`
 type. If a feature is to be treated as categorical, first convert it
 to some non-real type (such as `String` or `Char`). Alternatively,
-modify the default transformer for inputs as here:
+modify the default transformer for inputs as in the following example
+continued from above:
 
 ````julia
 julia> tr_X = default_transformer_X(rgs)
@@ -61,6 +62,6 @@ julia> mach = Machine(rgs, X, y, train, transformer_X = tr_X)
 ````
 
 Now the features `:Rad` and `:Chas` are interpreted as categorical
-whenenver `mach` is fit.
+wheneever `mach` is fit.
 
 

@@ -235,7 +235,7 @@ function fit(rgs::LGBMRegressor, cache, add, parallel, verbosity)
         report[:rms_raw_validation_errors] = output[1]["l2"]
     end
        
-    return predictor, report, (X, y)
+    return predictor, report, (X, y, categorical_feature_indices)
 end
 
 function predict(rgs::LGBMRegressor, predictor, X, parallel, verbosity)
