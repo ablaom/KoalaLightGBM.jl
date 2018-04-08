@@ -120,7 +120,7 @@ mutable struct LGBMTransformer_X <: Transformer
 end
 
 LGBMTransformer_X(; sorted=false, categorical_features=Symbol[],
-                  map_unseen_to_minus_one=False) =
+                  map_unseen_to_minus_one=false) =
     LGBMTransformer_X(sorted, categorical_features, map_unseen_to_minus_one)
 
 struct LGBMScheme_X <: BaseType
