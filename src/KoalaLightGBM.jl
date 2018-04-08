@@ -116,10 +116,12 @@ LGBMRegressor(;num_iterations=10, learning_rate=.1, num_leaves=127, max_depth=-1
 mutable struct LGBMTransformer_X <: Transformer
     sorted::Bool
     categorical_features::Vector{Symbol}
+    map_unseen_to_minus_one::Bool
 end
 
-LGBMTransformer_X(; sorted=false, categorical_features=Symbol[]) =
-    LGBMTransformer_X(sorted, categorical_features)
+LGBMTransformer_X(; sorted=false, categorical_features=Symbol[],
+                  map_unseen_to_minus_one=False) =
+    LGBMTransformer_X(sorted, categorical_features, map_unseen_to_minus_one)
 
 struct LGBMScheme_X <: BaseType
     features::Vector{Symbol}
@@ -131,7 +133,9 @@ end
 function fit(transformer::LGBMTransformer_X, X::AbstractDataFrame, parallel, verbosity)
 
     to_int_transformer = ToIntTransformer(sorted=transformer.sorted,
-                                          initial_label=0)
+                                          initial_label=0,
+                                          map_unseen_to_minus_one=
+                                          transformer.map_unseen_to_minus_one)
     categorical_features = transformer.categorical_features
     features = names(X)
     if isempty(categorical_features)
