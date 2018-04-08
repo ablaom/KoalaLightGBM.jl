@@ -9,11 +9,11 @@ of the Microsoft software.
 
 ### Usage example:
 
-In the following example we start with the hyperparameter
+In the following example we set the model parameter
 `validation_fraction=0.2` to obtain a running validation score for the
 training run. This means 20% of the data in rows `train` is held back
 in training for the validation scoring. Then we train on the full
-`train` set
+`train` set.
 
 ````julia
 julia> using KoalaLightGBM
