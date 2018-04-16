@@ -136,7 +136,7 @@ function fit(transformer::LGBMTransformer_X, X::AbstractDataFrame, parallel, ver
                                           initial_label=0,
                                           map_unseen_to_minus_one=
                                           transformer.map_unseen_to_minus_one)
-    categorical_features = transformer.categorical_features
+    categorical_features = copy(transformer.categorical_features)
     features = names(X)
     if isempty(categorical_features)
         types = eltypes(X)
