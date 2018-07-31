@@ -141,7 +141,7 @@ function fit(transformer::LGBMTransformer_X, X::AbstractDataFrame, parallel, ver
     if isempty(categorical_features)
         types = eltypes(X)
         for j in eachindex(types)
-            if !(types[j] <: Real)
+            if !(types[j] <: AbstractFloat)
                 push!(categorical_features, features[j])
             end
         end
@@ -177,16 +177,21 @@ default_transformer_y(model::LGBMRegressor) =
 ## SETUP AND FIT METHODS
 
 function setup(rgs::LGBMRegressor,
-               X::Matrix{T},
-               y::Vector{T},
-               scheme_X, parallel, verbosity) where T <: Real
+               X,
+               y,
+               scheme_X, parallel, verbosity)
+
+    # since LightGBM does not accept subbarrays:
+    XX = X[:,:]
+    yy = y[:]
+    
     features = scheme_X.features
     categorical_features = scheme_X.categorical_features
     categorical_feature_indices = map(categorical_features) do cat
         findfirst(features) do ftr ftr == cat end
     end
     
-    return X, y, categorical_feature_indices
+    return XX, yy, categorical_feature_indices
 end
 
 function fit(rgs::LGBMRegressor, cache, add, parallel, verbosity)

@@ -48,12 +48,12 @@ julia> err(mach, test)
 
 ### Categorical features
 
-By default, KoalaLightGBM treats any feature of element type `T<:Real`
-as an ordinal feature, and this includes columns of `Bool` and `Int`
-type. If a feature is to be treated as categorical, first convert it
-to some non-real type (such as `String` or `Char`). Alternatively,
-modify the default transformer for inputs as in the following example
-continued from above:
+By default, KoalaLightGBM treats any feature of element type
+`T<:AbstractFloat` as an ordinal feature, and all others as
+categorical. To force an `AbstractFloat` feature to be treated as
+categorical, convert it to a different type or, modify the default
+transformer for inputs as in the following example (continued from
+above):
 
 ````julia
 julia> tr_X = default_transformer_X(rgs)
@@ -61,7 +61,7 @@ julia> tr_X.categorical_features = [:Rad, :Chas]
 julia> mach = Machine(rgs, X, y, train, transformer_X = tr_X)
 ````
 
-Now the features `:Rad` and `:Chas` are interpreted as categorical
-wheneever `mach` is fit.
+Now only the features `:Rad` and `:Chas` are interpreted as categorical
+whenever `mach` is fit.
 
 
