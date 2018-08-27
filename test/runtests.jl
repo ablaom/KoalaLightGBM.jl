@@ -1,4 +1,3 @@
-using Revise
 using KoalaLightGBM
 using Base.Test
 
@@ -36,4 +35,38 @@ score = err(mach, test)
 println("error = $score")
 @test score > 3 && score < 4
 fit!(mach)
+
+
+## CLASSIFICATION
+
+# get some classification data:
+const Xc, yc = load_iris() # has 3-class target
+
+
+# restrict to binary target:
+mask = yc .!= "versicolor"
+Xc = Xc[mask,:]; yc = yc[mask]
+const Y = map(yc) do t
+    t == "setosa" ? 0 : 1
+end
+
+# randomize:
+rows = StatsBase.sample(eachindex(Y), length(Y), replace=false)
+Xc = Xc[rows,:]
+Y = Y[rows]
+
+# split rows into train and test and build model:
+train, test = split(eachindex(Y), 0.6);
+clf = LGBMBinaryClassifier(min_data_in_leaf=1, min_sum_hessian_in_leaf=0)
+clfM = Machine(clf, Xc, Y, train)
+
+clf.validation_fraction=0.2
+fit!(clfM, train)
+
+clf.validation_fraction=0.0
+fit!(clfM)
+predictions_on_test = map(predict(clfM, Xc, test)) do score
+    score >= 0.5 ? 1 : 0
+end
+@test predictions_on_test == Y[test] # test for perfect accuracy
 
