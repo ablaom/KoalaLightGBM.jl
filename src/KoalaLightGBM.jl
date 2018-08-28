@@ -110,6 +110,8 @@ mutable struct LGBMRegressor <: SupervisedModel{LightGBM.LGBMRegression}
     histogram_pool_size::Float64
     min_data_in_leaf::Int              # aka min_patterns_split
     min_sum_hessian_in_leaf::Float64 
+    lambda_l1::Float64
+    lambda_l2::Float64
     feature_fraction::Float64 
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -140,6 +142,7 @@ LGBMRegressor(;num_iterations=10, learning_rate=.1, num_leaves=127, max_depth=-1
               tree_learner="serial", num_threads=Sys.CPU_CORES,
               histogram_pool_size=-1.,
               min_data_in_leaf=100, min_sum_hessian_in_leaf=10.,
+              lambda_l1 = 0.0, lambda_l2 = 0.0,
               feature_fraction=1., feature_fraction_seed=0,
               bagging_fraction=1., bagging_freq=1, bagging_seed=0,
               early_stopping_round=4, max_bin=255,
@@ -154,6 +157,8 @@ LGBMRegressor(;num_iterations=10, learning_rate=.1, num_leaves=127, max_depth=-1
                                                        histogram_pool_size,
                                                        min_data_in_leaf,
                                                        min_sum_hessian_in_leaf,
+                                                       lambda_l1,
+                                                       lambda_l2,
                                                        feature_fraction,
                                                        feature_fraction_seed,
                                                        bagging_fraction, bagging_freq,
@@ -193,6 +198,8 @@ mutable struct LGBMBinaryClassifier <: SupervisedModel{LightGBM.LGBMBinary}
     histogram_pool_size::Float64
     min_data_in_leaf::Int              # aka min_patterns_split
     min_sum_hessian_in_leaf::Float64 
+    lambda_l1::Float64
+    lambda_l2::Float64
     feature_fraction::Float64 
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -223,6 +230,7 @@ LGBMBinaryClassifier(;num_iterations=10, learning_rate=.1, num_leaves=127, max_d
               tree_learner="serial", num_threads=Sys.CPU_CORES,
               histogram_pool_size=-1.,
               min_data_in_leaf=100, min_sum_hessian_in_leaf=10.,
+              lambda_l1 = 0.0, lambda_l2 = 0.0,
               feature_fraction=1., feature_fraction_seed=0,
               bagging_fraction=1., bagging_freq=1, bagging_seed=0,
               early_stopping_round=4, max_bin=255,
@@ -237,6 +245,8 @@ LGBMBinaryClassifier(;num_iterations=10, learning_rate=.1, num_leaves=127, max_d
                                                        histogram_pool_size,
                                                        min_data_in_leaf,
                                                        min_sum_hessian_in_leaf,
+                                                       lambda_l1,
+                                                       lambda_l2,
                                                        feature_fraction,
                                                        feature_fraction_seed,
                                                        bagging_fraction, bagging_freq,
