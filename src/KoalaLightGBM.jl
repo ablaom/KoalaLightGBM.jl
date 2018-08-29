@@ -124,7 +124,7 @@ mutable struct LGBMRegressor <: SupervisedModel{LightGBM.LGBMRegression}
     is_sparse::Bool 
     save_binary::Bool
     is_unbalance::Bool
-    metric::Vector{String}
+    metric::String
     metric_freq::Int 
     is_training_metric::Bool 
     ndcg_at::Vector{Int} 
@@ -147,7 +147,7 @@ LGBMRegressor(;num_iterations=10, learning_rate=.1, num_leaves=127, max_depth=-1
               bagging_fraction=1., bagging_freq=1, bagging_seed=0,
               early_stopping_round=4, max_bin=255,
               data_random_seed=0, init_score="", is_sparse=true,
-              save_binary=false, is_unbalance=false, metric=["l2"],
+              save_binary=false, is_unbalance=false, metric="l2",
               metric_freq=1, is_training_metric=false,
               ndcg_at=Int[], num_machines=1, local_listen_port=12400, time_out=120,
               machine_list_file="", 
@@ -212,7 +212,7 @@ mutable struct LGBMBinaryClassifier <: SupervisedModel{LightGBM.LGBMBinary}
     is_sparse::Bool 
     save_binary::Bool
     is_unbalance::Bool
-    metric::Vector{String}
+    metric::String
     metric_freq::Int 
     is_training_metric::Bool 
     ndcg_at::Vector{Int} 
@@ -235,7 +235,7 @@ LGBMBinaryClassifier(;num_iterations=10, learning_rate=.1, num_leaves=127, max_d
               bagging_fraction=1., bagging_freq=1, bagging_seed=0,
               early_stopping_round=4, max_bin=255,
               data_random_seed=0, init_score="", is_sparse=true,
-              save_binary=false, is_unbalance=false, metric=["l2"],
+              save_binary=false, is_unbalance=false, metric="l2",
               metric_freq=1, is_training_metric=false,
               ndcg_at=Int[], num_machines=1, local_listen_port=12400, time_out=120,
               machine_list_file="", 
@@ -312,6 +312,7 @@ function fit(model::LGBM, cache::Tuple{Array,Vector{T},Vector}, add, parallel, v
 
     parameters = params(model)
     delete!(parameters, :validation_fraction) # not sent to inner fit
+    parameters[:metric] = [parameters[:metric],]
     if model.feature_fraction_seed == 0
         parameters[:feature_fraction_seed] = round(Int, time())
     end
@@ -339,7 +340,7 @@ function fit(model::LGBM, cache::Tuple{Array,Vector{T},Vector}, add, parallel, v
     report = Dict{Symbol,Array{Float64,1}}()
 
     if !isempty(output)
-        report[:rms_raw_validation_errors] = output[1]["l2"]
+        report[:rms_raw_validation_errors] = output[1][model.metric]
     end
        
     return predictor, report, (X, y, categorical_feature_indices)

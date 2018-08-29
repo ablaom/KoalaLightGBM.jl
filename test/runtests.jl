@@ -57,7 +57,7 @@ Y = Y[rows]
 
 # split rows into train and test and build model:
 train, test = split(eachindex(Y), 0.6);
-clf = LGBMBinaryClassifier(min_data_in_leaf=1, min_sum_hessian_in_leaf=0)
+clf = LGBMBinaryClassifier(min_data_in_leaf=1, min_sum_hessian_in_leaf=0, metric="auc")
 clfM = Machine(clf, Xc, Y, train)
 
 clf.validation_fraction=0.2
